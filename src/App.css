@@ -57,7 +57,7 @@
 
 .wallet-link {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px; border-radius: var(--radius);
+  padding: 12px; border-radius: var(--radius); text-align: left;
   color: var(--sidebar-ink); transition: background 0.15s, color 0.15s;
 }
 .wallet-link:hover { background: var(--sidebar-hover); }
@@ -80,7 +80,7 @@
 /* Tombol & form tambah dompet */
 .wallet-add-btn {
   display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; border-radius: var(--radius);
+  padding: 10px 12px; border-radius: var(--radius); text-align: left;
   color: var(--sidebar-muted); border: 1px dashed var(--sidebar-tile);
   transition: background 0.15s, color 0.15s;
 }
@@ -114,7 +114,7 @@
 
 .sidebar-link {
   display: flex; align-items: center; gap: 12px;
-  padding: 11px 12px; border-radius: var(--radius);
+  padding: 11px 12px; border-radius: var(--radius); text-align: left;
   color: var(--sidebar-ink); transition: background 0.15s, color 0.15s;
 }
 .sidebar-link:hover { background: var(--sidebar-hover); }

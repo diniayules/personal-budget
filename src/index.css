@@ -16,7 +16,7 @@
   --sidebar-muted: #9A9186;
   --sidebar-active: #C0563A;
   /* Token sidebar tambahan — tiap tema mendefinisikan ulang agar sidebar
-     terang (Neraca) maupun gelap (Mint/Gelap) sama-sama terbaca. */
+     terang (Neraca) maupun gelap (Gelap/SpongeBob/Toy Story) sama-sama terbaca. */
   --sidebar-hover: #F3ECDF;
   --sidebar-tile: #F1EADE;
   --sidebar-active-bg: #F6E7E0;
@@ -55,37 +55,70 @@
   --text-scale: 1;
 }
 
-/* Tema Mint (hijau) */
-:root[data-theme="mint"] {
-  --bg: #F0FBF7;
-  --bg-2: #DBF5EC;
+/* Tema SpongeBob (aqua Bikini Bottom + kuning sponge) */
+:root[data-theme="spongebob"] {
+  --bg: #E4F6F4;
+  --bg-2: #CFEDE9;
   --surface: #FFFFFF;
-  --surface-2: #F3FBF8;
-  --sidebar-bg: #0B3D33;
-  --sidebar-ink: #DCF6EE;
-  --sidebar-muted: #8FC8B9;
-  --sidebar-active: #16C79A;
-  --sidebar-hover: rgba(255, 255, 255, 0.07);
-  --sidebar-tile: rgba(255, 255, 255, 0.12);
-  --sidebar-active-bg: #16C79A;
-  --sidebar-active-ink: #FFFFFF;
-  --sidebar-line: rgba(255, 255, 255, 0.1);
-  --sidebar-logo-bg: rgba(255, 255, 255, 0.1);
-  --sidebar-logo-ink: #FFFFFF;
-  --sidebar-chip-bg: rgba(255, 255, 255, 0.08);
-  --sidebar-chip-active-bg: rgba(255, 255, 255, 0.16);
-  --ink: #103A30;
-  --ink-soft: #356458;
-  --muted: #84A79B;
-  --line: #DCEDE6;
-  --primary: #0E9E78;
-  --primary-2: #0B7E60;
+  --surface-2: #EDF8F6;
+  --sidebar-bg: #0C5C6B;
+  --sidebar-ink: #E6F7F9;
+  --sidebar-muted: #8FC2CB;
+  --sidebar-active: #FFD400;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-tile: rgba(255, 255, 255, 0.13);
+  --sidebar-active-bg: #FFD400;
+  --sidebar-active-ink: #0B3A42;
+  --sidebar-line: rgba(255, 255, 255, 0.12);
+  --sidebar-logo-bg: #FFD400;
+  --sidebar-logo-ink: #0B3A42;
+  --sidebar-chip-bg: rgba(255, 255, 255, 0.1);
+  --sidebar-chip-active-bg: rgba(255, 255, 255, 0.18);
+  --ink: #103A41;
+  --ink-soft: #3D656C;
+  --muted: #7BA0A6;
+  --line: #D4E9E6;
+  --primary: #0E9CAC;
+  --primary-2: #0B8090;
   --on-primary: #FFFFFF;
-  --income: #0E9E78;
-  --income-bg: rgba(14, 158, 120, 0.13);
-  --expense: #D9534F;
-  --expense-bg: rgba(217, 83, 79, 0.12);
-  --shadow-card: 0 12px 30px -18px rgba(11, 61, 51, 0.4);
+  --income: #4CAF50;
+  --income-bg: rgba(76, 175, 80, 0.14);
+  --expense: #E03A3C;
+  --expense-bg: rgba(224, 58, 60, 0.12);
+  --shadow-card: 0 12px 30px -18px rgba(12, 92, 107, 0.34);
+}
+
+/* Tema Toy Story (biru langit berawan + kuning & merah Woody, hijau Buzz) */
+:root[data-theme="toystory"] {
+  --bg: #E7F3FD;
+  --bg-2: #D2E8F8;
+  --surface: #FFFFFF;
+  --surface-2: #EFF6FD;
+  --sidebar-bg: #1E5A9C;
+  --sidebar-ink: #EAF4FF;
+  --sidebar-muted: #9EC1E2;
+  --sidebar-active: #FFC20E;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-tile: rgba(255, 255, 255, 0.13);
+  --sidebar-active-bg: #FFC20E;
+  --sidebar-active-ink: #1B3A5C;
+  --sidebar-line: rgba(255, 255, 255, 0.12);
+  --sidebar-logo-bg: #FFC20E;
+  --sidebar-logo-ink: #1B3A5C;
+  --sidebar-chip-bg: rgba(255, 255, 255, 0.1);
+  --sidebar-chip-active-bg: rgba(255, 255, 255, 0.18);
+  --ink: #163150;
+  --ink-soft: #44637F;
+  --muted: #7C97AF;
+  --line: #D6E6F3;
+  --primary: #2C79C9;
+  --primary-2: #1F63AE;
+  --on-primary: #FFFFFF;
+  --income: #43A047;
+  --income-bg: rgba(67, 160, 71, 0.14);
+  --expense: #E23B2E;
+  --expense-bg: rgba(226, 59, 46, 0.12);
+  --shadow-card: 0 12px 30px -18px rgba(30, 90, 156, 0.34);
 }
 
 /* Tema Gelap */

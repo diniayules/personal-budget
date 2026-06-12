@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import type { AppData, Tabungan as Pos } from '../types'
-import { rupiah } from '../format'
+import type { AppData, Tabungan as Pos, TabunganJenis } from '../types'
+import { rupiah, todayIso } from '../format'
 import { newId } from '../lib/store'
 import { useLang } from '../i18n'
 import { useToast } from '../components/Toast'
@@ -8,21 +8,40 @@ import { Icons } from '../components/Icons'
 import { Modal } from '../components/Modal'
 import { RupiahInput } from '../components/RupiahInput'
 
+/** Ikon & label per jenis tabungan (label dari kamus i18n). */
+const JENIS_META: Record<TabunganJenis, { ikon: string; labelKey: string }> = {
+  uang: { ikon: '💵', labelKey: 'nav.tabUang' },
+  saham: { ikon: '📈', labelKey: 'nav.tabSaham' },
+  emas: { ikon: '🥇', labelKey: 'nav.tabEmas' },
+}
+
+/** Pilihan dropdown khusus tabungan emas. */
+const BENTUK_EMAS = ['Gelang', 'Cincin', 'Kalung', 'Anting', 'Emas Batangan']
+const KADAR_EMAS = ['Logam Mulia', '18k', '16k', '8k']
+
 type Props = {
   data: AppData
   setData: (next: AppData) => void
+  jenis: TabunganJenis
 }
 
-export function TabunganScreen({ data, setData }: Props) {
+export function TabunganScreen({ data, setData, jenis }: Props) {
   const { t } = useLang()
   const toast = useToast()
   // null = modal tertutup; { edit } = terbuka (edit null untuk pos baru).
   const [modal, setModal] = useState<{ edit: Pos | null } | null>(null)
   const [hapusId, setHapusId] = useState<string | null>(null)
 
+  const meta = JENIS_META[jenis]
+  // Hanya pos milik jenis tabungan yang sedang dibuka.
+  const posList = useMemo(
+    () => data.tabungan.filter((pos) => pos.jenis === jenis),
+    [data.tabungan, jenis],
+  )
+
   const total = useMemo(
-    () => data.tabungan.reduce((sum, pos) => sum + pos.jumlah, 0),
-    [data.tabungan],
+    () => posList.reduce((sum, pos) => sum + pos.jumlah, 0),
+    [posList],
   )
 
   function savePos(pos: Pos) {
@@ -47,8 +66,8 @@ export function TabunganScreen({ data, setData }: Props) {
       <header className="page-head">
         <div>
           <h1 className="page-title">
-            <span className="page-title-ikon">🐷</span>
-            {t('tab.judul')}
+            <span className="page-title-ikon">{meta.ikon}</span>
+            {t('tab.judul')} · {t(meta.labelKey)}
           </h1>
           <p className="page-sub">
             {t('app.brandKicker')} · {t('tab.sub')}
@@ -79,14 +98,14 @@ export function TabunganScreen({ data, setData }: Props) {
             </tr>
           </thead>
           <tbody>
-            {data.tabungan.length === 0 ? (
+            {posList.length === 0 ? (
               <tr>
                 <td colSpan={3} className="tx-empty">
                   {t('tab.kosong')}
                 </td>
               </tr>
             ) : (
-              data.tabungan.map((pos) => (
+              posList.map((pos) => (
                 <tr key={pos.id}>
                   <td>{pos.nama || <span className="muted">—</span>}</td>
                   <td className="ta-right amount amount-income">{rupiah(pos.jumlah)}</td>
@@ -117,7 +136,17 @@ export function TabunganScreen({ data, setData }: Props) {
         </table>
       </div>
 
-      {modal && <PosModal edit={modal.edit} onClose={() => setModal(null)} onSave={savePos} />}
+      {modal &&
+        (jenis === 'emas' ? (
+          <EmasModal edit={modal.edit} onClose={() => setModal(null)} onSave={savePos} />
+        ) : (
+          <PosModal
+            edit={modal.edit}
+            jenis={jenis}
+            onClose={() => setModal(null)}
+            onSave={savePos}
+          />
+        ))}
 
       {hapusId && (
         <Modal judul={t('tab.hapusKonfirmasi')} onClose={() => setHapusId(null)}>
@@ -137,11 +166,12 @@ export function TabunganScreen({ data, setData }: Props) {
 
 type PosModalProps = {
   edit: Pos | null
+  jenis: TabunganJenis
   onClose: () => void
   onSave: (pos: Pos) => void
 }
 
-function PosModal({ edit, onClose, onSave }: PosModalProps) {
+function PosModal({ edit, jenis, onClose, onSave }: PosModalProps) {
   const { t } = useLang()
   const [nama, setNama] = useState(edit?.nama ?? '')
   const [jumlah, setJumlah] = useState(edit?.jumlah ?? 0)
@@ -149,7 +179,7 @@ function PosModal({ edit, onClose, onSave }: PosModalProps) {
   function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!nama.trim()) return
-    onSave({ id: edit?.id ?? newId(), nama: nama.trim(), jumlah })
+    onSave({ id: edit?.id ?? newId(), nama: nama.trim(), jumlah, jenis: edit?.jenis ?? jenis })
   }
 
   return (
@@ -176,6 +206,110 @@ function PosModal({ edit, onClose, onSave }: PosModalProps) {
             {t('form.batal')}
           </button>
           <button type="submit" className="btn btn-primary" disabled={!nama.trim()}>
+            {t('form.simpan')}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  )
+}
+
+type EmasModalProps = {
+  edit: Pos | null
+  onClose: () => void
+  onSave: (pos: Pos) => void
+}
+
+function EmasModal({ edit, onClose, onSave }: EmasModalProps) {
+  const { t } = useLang()
+  const [tanggal, setTanggal] = useState(edit?.tanggal ?? todayIso())
+  const [bentuk, setBentuk] = useState(edit?.bentuk ?? '')
+  const [kadar, setKadar] = useState(edit?.kadar ?? '')
+  const [gram, setGram] = useState(edit?.gram ?? 0)
+  const [harga, setHarga] = useState(edit?.jumlah ?? 0)
+
+  // Gram & harga baru muncul setelah kedua dropdown dipilih.
+  const showRest = bentuk !== '' && kadar !== ''
+  const valid = showRest && gram > 0 && harga > 0 && tanggal !== ''
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!valid) return
+    const nama = `${bentuk} ${kadar} · ${gram} gr`
+    onSave({
+      id: edit?.id ?? newId(),
+      nama,
+      jumlah: harga,
+      jenis: 'emas',
+      tanggal,
+      bentuk,
+      kadar,
+      gram,
+    })
+  }
+
+  return (
+    <Modal judul={edit ? t('tab.judulEdit') : t('tab.judulTambah')} onClose={onClose}>
+      <form className="tx-form" onSubmit={submit}>
+        <label className="field">
+          <span>{t('tab.tanggal')}</span>
+          <input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} />
+        </label>
+
+        <label className="field">
+          <span>{t('tab.jenisEmas')}</span>
+          <select value={bentuk} onChange={(e) => setBentuk(e.target.value)}>
+            <option value="" disabled>
+              {t('tab.pilih')}
+            </option>
+            {BENTUK_EMAS.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>{t('tab.kadar')}</span>
+          <select value={kadar} onChange={(e) => setKadar(e.target.value)}>
+            <option value="" disabled>
+              {t('tab.pilih')}
+            </option>
+            {KADAR_EMAS.map((k) => (
+              <option key={k} value={k}>
+                {k}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {showRest && (
+          <>
+            <label className="field">
+              <span>{t('tab.gram')}</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={gram || ''}
+                placeholder="0"
+                onChange={(e) => setGram(Number(e.target.value))}
+              />
+            </label>
+
+            <label className="field">
+              <span>{t('tab.harga')}</span>
+              <RupiahInput value={harga} onChange={setHarga} />
+            </label>
+          </>
+        )}
+
+        <div className="modal-actions">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>
+            {t('form.batal')}
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={!valid}>
             {t('form.simpan')}
           </button>
         </div>

@@ -3,8 +3,9 @@ import { setPrefs, usePrefs } from '../lib/prefs'
 
 const THEMES: { id: Theme; label: string; dot: string }[] = [
   { id: 'pop', label: 'Krem', dot: '#C0563A' },
-  { id: 'mint', label: 'Mint', dot: '#16C79A' },
+  { id: 'spongebob', label: 'SpongeBob', dot: '#0E9CAC' },
   { id: 'dark', label: 'Gelap', dot: '#0F172A' },
+  { id: 'toystory', label: 'Toy Story', dot: '#2C79C9' },
 ]
 
 export function ThemeSwitcher() {

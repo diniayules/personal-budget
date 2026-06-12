@@ -33,12 +33,26 @@ export type Transaction = {
   tanggal: string
 }
 
+/** Jenis tabungan: uang tunai/tabungan, saham, atau emas. */
+export type TabunganJenis = 'uang' | 'saham' | 'emas'
+
 /** Satu pos tabungan (mis. Dana Darurat, Liburan) dengan nominal terkumpul. */
 export type Tabungan = {
   id: string
   nama: string
-  /** Jumlah terkumpul dalam Rupiah. */
+  /** Jumlah terkumpul dalam Rupiah (untuk emas: harga beli). */
   jumlah: number
+  /** Kategori tabungan: uang, saham, atau emas. */
+  jenis: TabunganJenis
+  // ---- Khusus emas (opsional, hanya terisi saat jenis === 'emas') ----
+  /** Tanggal pembelian, format ISO `YYYY-MM-DD`. */
+  tanggal?: string
+  /** Bentuk emas: Gelang, Cincin, Kalung, Anting, Emas Batangan. */
+  bentuk?: string
+  /** Kadar emas: Logam Mulia, 18k, 16k, 8k. */
+  kadar?: string
+  /** Berat dalam gram. */
+  gram?: number
 }
 
 /**
@@ -74,5 +88,5 @@ export type AppData = {
 // ---- Preferensi tampilan (per-perangkat) ----
 export type FontPair = 'playful' | 'modern' | 'editorial' | 'minimal' | 'oui'
 export type FontSize = 'small' | 'normal' | 'large' | 'xlarge'
-export type Theme = 'pop' | 'mint' | 'dark'
+export type Theme = 'pop' | 'dark' | 'toystory' | 'spongebob'
 export type Lang = 'id' | 'en'

@@ -1,12 +1,25 @@
 import { useEffect, useState } from 'react'
-import type { Wallet, WalletId } from '../types'
+import type { TabunganJenis, Wallet, WalletId } from '../types'
 import { WALLET_IKON_PILIHAN } from '../storage'
 import { rupiah } from '../format'
 import { useLang } from '../i18n'
 import { Icons } from './Icons'
 import { ThemeSwitcher } from './ThemeSwitcher'
 
-export type NavId = WalletId | 'tabungan' | 'harga' | 'pengaturan'
+export type NavId =
+  | WalletId
+  | 'tabungan:uang'
+  | 'tabungan:saham'
+  | 'tabungan:emas'
+  | 'harga'
+  | 'pengaturan'
+
+/** Tiga bagian tabungan yang tampil sebagai menu terpisah di sidebar. */
+export const TABUNGAN_NAV: { id: NavId; jenis: TabunganJenis; ikon: string; labelKey: string }[] = [
+  { id: 'tabungan:uang', jenis: 'uang', ikon: '💵', labelKey: 'nav.tabUang' },
+  { id: 'tabungan:saham', jenis: 'saham', ikon: '📈', labelKey: 'nav.tabSaham' },
+  { id: 'tabungan:emas', jenis: 'emas', ikon: '🥇', labelKey: 'nav.tabEmas' },
+]
 
 type Props = {
   active: NavId
@@ -15,7 +28,7 @@ type Props = {
   onNavigate: (id: NavId) => void
   wallets: Wallet[]
   saldoPerWallet: Record<WalletId, number>
-  tabunganTotal: number
+  tabunganTotals: Record<TabunganJenis, number>
   onAddWallet: (nama: string, ikon: string) => void
 }
 
@@ -26,7 +39,7 @@ export function Sidebar({
   onNavigate,
   wallets,
   saldoPerWallet,
-  tabunganTotal,
+  tabunganTotals,
   onAddWallet,
 }: Props) {
   const { t } = useLang()
@@ -138,22 +151,32 @@ export function Sidebar({
               </button>
             )}
 
-            <button
-              type="button"
-              className={'wallet-link' + (active === 'tabungan' ? ' is-active' : '')}
-              onClick={() => go('tabungan')}
-            >
-              <span className="wallet-ikon">🐷</span>
-              <span className="wallet-text">
-                <span className="wallet-nama">{t('nav.tabungan')}</span>
-                <span className="wallet-saldo">{rupiah(tabunganTotal)}</span>
-              </span>
-              {active === 'tabungan' && (
-                <span className="wallet-arrow">
-                  <Icons.chevron />
-                </span>
-              )}
-            </button>
+          </div>
+
+          <div className="sidebar-group">
+            <div className="sidebar-group-head">{t('nav.tabungan')}</div>
+            {TABUNGAN_NAV.map((item) => {
+              const isActive = item.id === active
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={'wallet-link' + (isActive ? ' is-active' : '')}
+                  onClick={() => go(item.id)}
+                >
+                  <span className="wallet-ikon">{item.ikon}</span>
+                  <span className="wallet-text">
+                    <span className="wallet-nama">{t(item.labelKey)}</span>
+                    <span className="wallet-saldo">{rupiah(tabunganTotals[item.jenis])}</span>
+                  </span>
+                  {isActive && (
+                    <span className="wallet-arrow">
+                      <Icons.chevron />
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
           <div className="sidebar-group">

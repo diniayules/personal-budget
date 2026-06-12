@@ -21,7 +21,7 @@ export const PREFS_DEFAULTS: Prefs = {
 
 const KEY = 'personal-budget:prefs:v1'
 
-const THEMES: Theme[] = ['pop', 'mint', 'dark']
+const THEMES: Theme[] = ['pop', 'dark', 'toystory', 'spongebob']
 const FONT_PAIRS: FontPair[] = ['playful', 'modern', 'editorial', 'minimal', 'oui']
 const FONT_SIZES: FontSize[] = ['small', 'normal', 'large', 'xlarge']
 const LANGS: Lang[] = ['id', 'en']

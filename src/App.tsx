@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { TxType, Wallet, WalletId } from './types'
+import type { TabunganJenis, TxType, Wallet, WalletId } from './types'
 import { newId } from './lib/store'
 import { applyAppearance } from './appearance'
 import { useAppData } from './lib/useAppData'
@@ -80,10 +80,16 @@ function Inner() {
     return acc
   }, [data])
 
-  const tabunganTotal = useMemo(
-    () => (data ? data.tabungan.reduce((sum, pos) => sum + pos.jumlah, 0) : 0),
-    [data],
-  )
+  const tabunganTotals = useMemo<Record<TabunganJenis, number>>(() => {
+    const acc: Record<TabunganJenis, number> = { uang: 0, saham: 0, emas: 0 }
+    if (data) for (const pos of data.tabungan) acc[pos.jenis] += pos.jumlah
+    return acc
+  }, [data])
+
+  // nav untuk tabungan berbentuk "tabungan:<jenis>"; ekstrak jenis-nya.
+  const tabunganJenis: TabunganJenis | null = nav.startsWith('tabungan:')
+    ? (nav.slice('tabungan:'.length) as TabunganJenis)
+    : null
 
   if (loading || !data) {
     return <div className="loading">Memuat…</div>
@@ -98,7 +104,7 @@ function Inner() {
         onNavigate={handleNavigate}
         wallets={data.wallets}
         saldoPerWallet={saldoPerWallet}
-        tabunganTotal={tabunganTotal}
+        tabunganTotals={tabunganTotals}
         onAddWallet={addWallet}
       />
 
@@ -115,8 +121,8 @@ function Inner() {
         <main className="main">
           {nav === 'pengaturan' ? (
             <Pengaturan data={data} setData={setData} onDeleteWallet={deleteWallet} />
-          ) : nav === 'tabungan' ? (
-            <TabunganScreen data={data} setData={setData} />
+          ) : tabunganJenis ? (
+            <TabunganScreen key={tabunganJenis} data={data} setData={setData} jenis={tabunganJenis} />
           ) : nav === 'harga' ? (
             <HargaBarang data={data} setData={setData} />
           ) : (

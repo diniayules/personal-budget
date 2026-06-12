@@ -7,7 +7,7 @@
 // Analog dengan db.ts di project absensi, tapi backend-nya localStorage
 // bukan Supabase — supaya app langsung jalan tanpa setup.
 // =============================================================
-import type { AppData, PriceEntry, Tabungan, Transaction, TxType, Wallet } from '../types'
+import type { AppData, PriceEntry, Tabungan, TabunganJenis, Transaction, TxType, Wallet } from '../types'
 import { APP_DATA_DEFAULT, KATEGORI, WALLET_DEFAULT } from '../storage'
 
 const KEY = 'personal-budget:data:v1'
@@ -28,6 +28,20 @@ function isTabungan(t: unknown): t is Tabungan {
   if (!t || typeof t !== 'object') return false
   const r = t as Record<string, unknown>
   return typeof r.id === 'string' && typeof r.nama === 'string' && typeof r.jumlah === 'number'
+}
+
+/** Pastikan `jenis` valid; data lama tanpa jenis jatuh ke 'uang'. Field emas dipertahankan. */
+function normalizeTabungan(pos: Tabungan): Tabungan {
+  const jenis = pos.jenis
+  const valid: TabunganJenis = jenis === 'saham' || jenis === 'emas' ? jenis : 'uang'
+  const out: Tabungan = { id: pos.id, nama: pos.nama, jumlah: pos.jumlah, jenis: valid }
+  if (valid === 'emas') {
+    if (typeof pos.tanggal === 'string') out.tanggal = pos.tanggal
+    if (typeof pos.bentuk === 'string') out.bentuk = pos.bentuk
+    if (typeof pos.kadar === 'string') out.kadar = pos.kadar
+    if (typeof pos.gram === 'number') out.gram = pos.gram
+  }
+  return out
 }
 
 function isPriceEntry(t: unknown): t is PriceEntry {
@@ -98,7 +112,7 @@ export function loadAppData(): AppData {
       ? parsed.transactions.filter(isTransaction)
       : []
     const tabungan = Array.isArray(parsed.tabungan)
-      ? parsed.tabungan.filter(isTabungan)
+      ? parsed.tabungan.filter(isTabungan).map(normalizeTabungan)
       : []
     const hargaBarang = Array.isArray(parsed.hargaBarang)
       ? parsed.hargaBarang.filter(isPriceEntry)
