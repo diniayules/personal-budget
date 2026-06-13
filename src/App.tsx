@@ -20,9 +20,8 @@ function Inner() {
   const prefs = usePrefs()
   const [nav, setNav] = useState<NavId>('pribadi')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  // Pop-up sapaan: null = tertutup, { lockedWallet } = terbuka.
-  // lockedWallet null → tanya jenis lalu dompet (saat halaman dibuka);
-  // lockedWallet terisi → tanya jenis saja (saat ganti dompet di sidebar).
+  // Pop-up sapaan hanya muncul saat halaman dibuka (alur penuh: tanya jenis
+  // lalu dompet). null = tertutup. Tidak lagi dimunculkan saat ganti dompet.
   const [welcome, setWelcome] = useState<{ lockedWallet: WalletId | null } | null>({
     lockedWallet: null,
   })
@@ -35,12 +34,6 @@ function Inner() {
     setWelcome(null)
     setNav(wallet)
     setQuickNew(type)
-  }
-
-  function handleNavigate(id: NavId) {
-    setNav(id)
-    // Tiap berpindah ke dompet, munculkan pop-up sapaan untuk dompet itu.
-    if (isWalletId(id)) setWelcome({ lockedWallet: id })
   }
 
   function addWallet(nama: string, ikon: string) {
@@ -87,9 +80,11 @@ function Inner() {
   }, [data])
 
   // nav untuk tabungan berbentuk "tabungan:<jenis>"; ekstrak jenis-nya.
-  const tabunganJenis: TabunganJenis | null = nav.startsWith('tabungan:')
+  // Hanya valid bila jenis tersebut diaktifkan di Pengaturan.
+  const navJenis: TabunganJenis | null = nav.startsWith('tabungan:')
     ? (nav.slice('tabungan:'.length) as TabunganJenis)
     : null
+  const tabunganJenis = navJenis && prefs.tabunganTabs[navJenis] ? navJenis : null
 
   if (loading || !data) {
     return <div className="loading">Memuat…</div>
@@ -101,7 +96,7 @@ function Inner() {
         active={nav}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        onNavigate={handleNavigate}
+        onNavigate={setNav}
         wallets={data.wallets}
         saldoPerWallet={saldoPerWallet}
         tabunganTotals={tabunganTotals}

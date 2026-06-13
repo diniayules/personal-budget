@@ -3,6 +3,7 @@ import type { TabunganJenis, Wallet, WalletId } from '../types'
 import { WALLET_IKON_PILIHAN } from '../storage'
 import { rupiah } from '../format'
 import { useLang } from '../i18n'
+import { usePrefs } from '../lib/prefs'
 import { Icons } from './Icons'
 import { ThemeSwitcher } from './ThemeSwitcher'
 
@@ -43,6 +44,8 @@ export function Sidebar({
   onAddWallet,
 }: Props) {
   const { t } = useLang()
+  const { tabunganTabs } = usePrefs()
+  const tabunganNav = TABUNGAN_NAV.filter((item) => tabunganTabs[item.jenis])
   const [adding, setAdding] = useState(false)
   const [nama, setNama] = useState('')
   const [ikon, setIkon] = useState(WALLET_IKON_PILIHAN[0])
@@ -78,6 +81,7 @@ export function Sidebar({
     <>
       {open && <div className="sidebar-backdrop" onClick={onClose} />}
       <aside className={'sidebar' + (open ? ' is-open' : '')}>
+        <div className="sidebar-inner">
         <div className="sidebar-brand">
           <div className="sidebar-logo">💰</div>
           <div className="sidebar-brand-text">
@@ -153,9 +157,10 @@ export function Sidebar({
 
           </div>
 
+          {tabunganNav.length > 0 && (
           <div className="sidebar-group">
             <div className="sidebar-group-head">{t('nav.tabungan')}</div>
-            {TABUNGAN_NAV.map((item) => {
+            {tabunganNav.map((item) => {
               const isActive = item.id === active
               return (
                 <button
@@ -178,6 +183,7 @@ export function Sidebar({
               )
             })}
           </div>
+          )}
 
           <div className="sidebar-group">
             <div className="sidebar-group-head">{t('nav.lacak')}</div>
@@ -210,6 +216,7 @@ export function Sidebar({
 
         <div className="sidebar-foot">
           <ThemeSwitcher />
+        </div>
         </div>
       </aside>
     </>

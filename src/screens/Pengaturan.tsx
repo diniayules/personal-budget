@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
-import type { AppData, FontPair, FontSize, Lang, TxType, WalletId } from '../types'
+import type { AppData, FontPair, FontSize, Lang, TabunganJenis, TxType, WalletId } from '../types'
 import { APP_DATA_DEFAULT } from '../storage'
 import { FONT_PAIRS, FONT_PAIR_LIST, FONT_SIZE_LIST, FONT_SIZE_META } from '../appearance'
 import { setPrefs, usePrefs } from '../lib/prefs'
 import { useLang } from '../i18n'
 import { useToast } from '../components/Toast'
 import { ThemeSwitcher } from '../components/ThemeSwitcher'
+import { TABUNGAN_NAV } from '../components/Sidebar'
 
 type Props = {
   data: AppData
@@ -56,6 +57,10 @@ export function Pengaturan({ data, setData, onDeleteWallet }: Props) {
         [type]: data.categories[type].filter((k) => k !== nama),
       },
     })
+  }
+
+  function toggleTab(jenis: TabunganJenis) {
+    setPrefs({ tabunganTabs: { ...prefs.tabunganTabs, [jenis]: !prefs.tabunganTabs[jenis] } })
   }
 
   function ekspor() {
@@ -186,6 +191,27 @@ export function Pengaturan({ data, setData, onDeleteWallet }: Props) {
             </form>
           </div>
         ))}
+      </section>
+
+      <section className="panel">
+        <h2 className="panel-title">{t('set.tabungan')}</h2>
+        <p className="page-sub">{t('set.tabunganSub')}</p>
+        <div className="chip-row">
+          {TABUNGAN_NAV.map((item) => {
+            const on = prefs.tabunganTabs[item.jenis]
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={'chip' + (on ? ' is-active' : '')}
+                aria-pressed={on}
+                onClick={() => toggleTab(item.jenis)}
+              >
+                {item.ikon} {t(item.labelKey)}
+              </button>
+            )
+          })}
+        </div>
       </section>
 
       <section className="panel">

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { FontPair, FontSize, Lang, Theme } from '../types'
+import type { FontPair, FontSize, Lang, TabunganJenis, Theme } from '../types'
 
 // Preferensi tampilan disimpan PER-PERANGKAT (localStorage), bukan di data
 // transaksi. Tiap browser/HP punya tema, font, ukuran teks, dan bahasa sendiri.
@@ -10,6 +10,8 @@ export type Prefs = {
   fontPair: FontPair
   fontSize: FontSize
   lang: Lang
+  /** Jenis tabungan yang aktif/tampil di menu. */
+  tabunganTabs: Record<TabunganJenis, boolean>
 }
 
 export const PREFS_DEFAULTS: Prefs = {
@@ -17,6 +19,7 @@ export const PREFS_DEFAULTS: Prefs = {
   fontPair: 'playful',
   fontSize: 'normal',
   lang: 'id',
+  tabunganTabs: { uang: true, saham: true, emas: true },
 }
 
 const KEY = 'personal-budget:prefs:v1'
@@ -30,6 +33,9 @@ function parse(raw: string | null): Prefs {
   if (!raw) return PREFS_DEFAULTS
   try {
     const p = JSON.parse(raw) as Partial<Record<keyof Prefs, unknown>>
+    const tabs = p.tabunganTabs as Partial<Record<TabunganJenis, unknown>> | undefined
+    const tab = (k: TabunganJenis) =>
+      typeof tabs?.[k] === 'boolean' ? (tabs[k] as boolean) : PREFS_DEFAULTS.tabunganTabs[k]
     return {
       theme: THEMES.includes(p.theme as Theme) ? (p.theme as Theme) : PREFS_DEFAULTS.theme,
       fontPair: FONT_PAIRS.includes(p.fontPair as FontPair)
@@ -39,6 +45,7 @@ function parse(raw: string | null): Prefs {
         ? (p.fontSize as FontSize)
         : PREFS_DEFAULTS.fontSize,
       lang: LANGS.includes(p.lang as Lang) ? (p.lang as Lang) : PREFS_DEFAULTS.lang,
+      tabunganTabs: { uang: tab('uang'), saham: tab('saham'), emas: tab('emas') },
     }
   } catch {
     return PREFS_DEFAULTS

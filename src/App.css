@@ -18,6 +18,8 @@
   flex-shrink: 0;
   background: var(--sidebar-bg);
   color: var(--sidebar-ink);
+}
+.sidebar-inner {
   display: flex;
   flex-direction: column;
   padding: 22px 16px;
