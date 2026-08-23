@@ -1,12 +1,9 @@
 // Input nama barang dengan saran otomatis dari barang yang pernah dicatat.
-// Mengetik huruf yang sama dengan barang lama akan memunculkan daftar pilihan
-// beserta harga terakhirnya; memilih salah satu ikut mengisi satuannya.
+// Mengetik huruf yang sama dengan barang lama akan memunculkan daftar nama
+// yang cocok; memilih salah satu ikut mengisi satuan yang dulu dipakai.
 
 import { useMemo, useRef, useState } from 'react'
 import { cariSaran, type SaranBarang } from '../lib/saranBarang'
-import { baseSatuan } from '../lib/satuan'
-import { rupiah } from '../format'
-import { useLang } from '../i18n'
 
 type Props = {
   value: string
@@ -30,7 +27,6 @@ export function NamaBarangInput({
   autoFocus,
   ariaLabel,
 }: Props) {
-  const { t } = useLang()
   const [buka, setBuka] = useState(false)
   const [sorot, setSorot] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -114,9 +110,6 @@ export function NamaBarangInput({
               >
                 <span className="ac-nama">
                   <Cocok nama={s.nama} q={value} />
-                </span>
-                <span className="ac-harga">
-                  {rupiah(s.hargaSatuan)}/{t('satuan.' + baseSatuan(s.satuan))}
                 </span>
               </button>
             </li>

@@ -6,6 +6,7 @@ import { useLang } from '../i18n'
 import { useToast } from '../components/Toast'
 import { Icons } from '../components/Icons'
 import { Modal } from '../components/Modal'
+import { GrafikBulanan } from '../components/GrafikBulanan'
 import { TransaksiModal, type ItemInput } from './TransaksiModal'
 import { buatSaranBarang } from '../lib/saranBarang'
 
@@ -170,6 +171,8 @@ export function Dashboard({ wallet, data, setData, quickNew, onQuickConsumed }: 
           <div className="card-value">{rupiah(saldoBank)}</div>
         </div>
       </div>
+
+      <GrafikBulanan txs={txs} />
 
       <div className="toolbar">
         <div className="seg seg-sm" role="group" aria-label="Filter">

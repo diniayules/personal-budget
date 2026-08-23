@@ -129,6 +129,17 @@ const ID: Dict = {
   'welcome.dompetJudul': 'Untuk dompet yang mana?',
   'welcome.kembali': '← Kembali',
   'welcome.lewati': 'Lewati dulu',
+  // Grafik bulanan di halaman dompet
+  'grafik.judul': 'Grafik Bulanan',
+  'grafik.sub': 'Pemasukan & pengeluaran tiap bulan — ketuk satu bulan untuk melihat rinciannya.',
+  'grafik.rentang': 'Rentang bulan',
+  'grafik.nBulan': '{n} bln',
+  'grafik.semua': 'Semua',
+  'grafik.rincian': 'Rincian {bulan}',
+  'grafik.terbesar': 'Terbesar',
+  'grafik.dariTotal': '{p}% dari total',
+  'grafik.nTransaksi': '{n} transaksi',
+  'grafik.kosong': 'Tidak ada catatan di bulan ini.',
   // Rincian barang dalam form pengeluaran
   'item.judul': 'Rincian Barang',
   'item.hint':
@@ -300,6 +311,17 @@ const EN: Dict = {
   'welcome.dompetJudul': 'For which wallet?',
   'welcome.kembali': '← Back',
   'welcome.lewati': 'Skip for now',
+  // Monthly chart on the wallet page
+  'grafik.judul': 'Monthly Chart',
+  'grafik.sub': 'Income & expense per month — tap a month to see its breakdown.',
+  'grafik.rentang': 'Month range',
+  'grafik.nBulan': '{n} mo',
+  'grafik.semua': 'All',
+  'grafik.rincian': '{bulan} breakdown',
+  'grafik.terbesar': 'Largest',
+  'grafik.dariTotal': '{p}% of total',
+  'grafik.nTransaksi': '{n} transactions',
+  'grafik.kosong': 'Nothing recorded this month.',
   // Item breakdown in the expense form
   'item.judul': 'Item Breakdown',
   'item.hint':
