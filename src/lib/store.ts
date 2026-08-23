@@ -7,8 +7,18 @@
 // Analog dengan db.ts di project absensi, tapi backend-nya localStorage
 // bukan Supabase — supaya app langsung jalan tanpa setup.
 // =============================================================
-import type { AppData, PriceEntry, Tabungan, TabunganJenis, Transaction, TxType, Wallet } from '../types'
+import type {
+  AppData,
+  HargaEmas,
+  PriceEntry,
+  Tabungan,
+  TabunganJenis,
+  Transaction,
+  TxType,
+  Wallet,
+} from '../types'
 import { APP_DATA_DEFAULT, KATEGORI, WALLET_DEFAULT } from '../storage'
+import { getSatuan, pisahJumlahDariNama } from './satuan'
 
 const KEY = 'personal-budget:data:v1'
 
@@ -39,9 +49,35 @@ function normalizeTabungan(pos: Tabungan): Tabungan {
     if (typeof pos.tanggal === 'string') out.tanggal = pos.tanggal
     if (typeof pos.bentuk === 'string') out.bentuk = pos.bentuk
     if (typeof pos.kadar === 'string') out.kadar = pos.kadar
+    if (typeof pos.berat === 'number') out.berat = pos.berat
+    if (typeof pos.satuanBerat === 'string') out.satuanBerat = pos.satuanBerat
     if (typeof pos.gram === 'number') out.gram = pos.gram
+    if (typeof pos.hargaKini === 'number') out.hargaKini = pos.hargaKini
+    if (typeof pos.hargaKiniTanggal === 'string') out.hargaKiniTanggal = pos.hargaKiniTanggal
   }
   return out
+}
+
+function isHargaEmas(t: unknown): t is HargaEmas {
+  if (!t || typeof t !== 'object') return false
+  const r = t as Record<string, unknown>
+  return (
+    typeof r.id === 'string' &&
+    typeof r.posId === 'string' &&
+    typeof r.harga === 'number' &&
+    typeof r.tanggal === 'string'
+  )
+}
+
+/** Saring daftar harga emas apa adanya (dipakai load, impor JSON, & Drive). */
+export function normalizeHargaEmasList(raw: unknown): HargaEmas[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter(isHargaEmas).map((h) => ({
+    id: h.id,
+    posId: h.posId,
+    harga: h.harga,
+    tanggal: h.tanggal,
+  }))
 }
 
 function isPriceEntry(t: unknown): t is PriceEntry {
@@ -53,6 +89,32 @@ function isPriceEntry(t: unknown): t is PriceEntry {
     typeof r.harga === 'number' &&
     typeof r.tanggal === 'string'
   )
+}
+
+/**
+ * Pastikan entri harga punya `jumlah` & `satuan`. Data lama menyimpan berat di
+ * dalam nama ("Ayam 1kg"), jadi dipisah sekali di sini supaya perbandingan
+ * harga per satuan langsung benar tanpa user mengetik ulang.
+ */
+/** Saring & normalisasi daftar entri harga apa adanya (dipakai load & impor JSON). */
+export function normalizePriceList(raw: unknown): PriceEntry[] {
+  return Array.isArray(raw) ? raw.filter(isPriceEntry).map(normalizePriceEntry) : []
+}
+
+function normalizePriceEntry(e: PriceEntry): PriceEntry {
+  const jumlah = typeof e.jumlah === 'number' && e.jumlah > 0 ? e.jumlah : null
+  const satuan = typeof e.satuan === 'string' && e.satuan.trim() !== '' ? e.satuan : null
+  const dasar = jumlah && satuan ? { nama: e.nama.trim(), jumlah, satuan } : pisahJumlahDariNama(e.nama)
+  const out: PriceEntry = {
+    id: e.id,
+    nama: dasar.nama,
+    harga: e.harga,
+    jumlah: dasar.jumlah,
+    satuan: getSatuan(dasar.satuan).id,
+    tanggal: e.tanggal,
+  }
+  if (typeof e.txId === 'string') out.txId = e.txId
+  return out
 }
 
 /**
@@ -114,14 +176,13 @@ export function loadAppData(): AppData {
     const tabungan = Array.isArray(parsed.tabungan)
       ? parsed.tabungan.filter(isTabungan).map(normalizeTabungan)
       : []
-    const hargaBarang = Array.isArray(parsed.hargaBarang)
-      ? parsed.hargaBarang.filter(isPriceEntry)
-      : []
+    const hargaBarang = normalizePriceList(parsed.hargaBarang)
     return {
       transactions,
       wallets: normalizeWallets(parsed as Record<string, unknown>),
       tabungan,
       hargaBarang,
+      hargaEmas: normalizeHargaEmasList(parsed.hargaEmas),
       categories: normalizeCategories(parsed.categories),
     }
   } catch (e) {

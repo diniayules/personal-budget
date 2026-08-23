@@ -260,7 +260,8 @@
 
 /* ---------- Modal ---------- */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(40, 32, 26, 0.42); display: grid; place-items: center; z-index: 60; padding: 18px; }
-.modal { width: 100%; max-width: 440px; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-float); overflow: hidden; }
+/* overflow visible supaya daftar saran nama barang tidak terpotong tepi modal. */
+.modal { width: 100%; max-width: 440px; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-float); }
 .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
 .modal-head h3 { font-size: 18px; }
 .modal-body { padding: 20px; }
@@ -289,6 +290,22 @@
 }
 .field input:focus, .field select:focus { outline: 2px solid var(--primary); border-color: transparent; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Berat emas: angka + dropdown satuan (gram / mayam / suku). */
+.berat-input { display: flex; gap: 8px; }
+.berat-input input { flex: 1; min-width: 0; }
+.berat-input select { width: auto; flex: 0 0 auto; }
+
+/* Panel harga pasar emas di tab Tabungan · Emas. */
+.emas-panel { margin-top: 16px; }
+.card-sub { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.emas-catatan { font-size: 12.5px; margin: 0 0 6px; }
+.emas-cek-tgl { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); }
+.emas-riwayat-toggle {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--ink); font-size: 13.5px; font-weight: 600;
+}
 
 .seg { width: auto; }
 .tx-form .seg { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
@@ -331,10 +348,30 @@
 .item-section { border-top: 1px dashed var(--line); padding-top: 14px; }
 .item-hint { font-size: 12px; color: var(--muted); margin: -2px 0 4px; }
 .item-rows { display: flex; flex-direction: column; gap: 8px; }
-.item-row { display: grid; grid-template-columns: 1fr 130px auto; gap: 8px; align-items: center; }
+.item-row { display: grid; grid-template-columns: minmax(0, 1fr) 132px 130px auto; gap: 8px; align-items: center; }
 .item-row .item-nama { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 11px 13px; font-size: 14px; width: 100%; }
 .item-row .item-nama:focus { outline: 2px solid var(--primary); border-color: transparent; }
 .item-row .rupiah-input input { font-size: 14px; padding: 10px 6px; }
+/* Pratinjau harga per satuan: baris sendiri di bawah kolom-kolom input. */
+.item-unit { grid-column: 1 / -1; margin: -2px 0 2px; font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+/* Saran nama barang (autocomplete) */
+.autocomplete { position: relative; }
+.autocomplete > input { width: 100%; }
+.ac-list { position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; right: 0; list-style: none; margin: 0; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-float); max-height: 232px; overflow-y: auto; }
+.ac-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); text-align: left; font-size: 14px; color: var(--ink); }
+.ac-item.is-sorot { background: var(--surface-2); }
+.ac-nama { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ac-nama strong { color: var(--primary); font-weight: 700; }
+.ac-harga { flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.field-hint { font-size: 12px; color: var(--muted); margin: 0; }
+
+/* Input pasangan jumlah + satuan */
+.qty-input { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0 4px 0 9px; }
+.qty-input:focus-within { outline: 2px solid var(--primary); border-color: transparent; }
+.qty-input .qty-jumlah { background: none; border: none; outline: none; padding: 11px 0; font-family: var(--font-mono); font-size: 14px; font-weight: 600; width: 100%; font-variant-numeric: tabular-nums; }
+.qty-input .qty-satuan { background: none; border: none; outline: none; padding: 10px 2px; font-size: 13px; color: var(--ink-soft); width: 100%; min-width: 0; }
+.tx-form .field .qty-input .qty-jumlah, .tx-form .field .qty-input .qty-satuan { font-size: 15px; }
 .item-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
 .item-total { font-size: 13px; color: var(--muted); }
 .item-total strong { color: var(--ink); font-family: var(--font-mono); }
@@ -354,13 +391,19 @@
 .harga-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
 .harga-now { text-align: right; white-space: nowrap; }
 .harga-now-val { display: block; font-family: var(--font-mono); font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums; }
+.harga-now-unit { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+.harga-now-asal { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
 .harga-delta { display: inline-block; font-size: 12px; font-weight: 700; margin-top: 2px; }
 .harga-riwayat { border-top: 1px solid var(--line); padding: 6px 20px 12px; }
-.harga-riwayat-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.harga-riwayat-row { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .harga-riwayat-row:last-child { border-bottom: none; }
 .harga-rw-tgl { font-size: 13px; color: var(--ink-soft); }
-.harga-rw-harga { font-family: var(--font-mono); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+.harga-rw-qty { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.harga-rw-harga { font-family: var(--font-mono); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.harga-rw-unit { font-size: 11px; font-weight: 600; color: var(--muted); }
 .harga-rw-delta { font-size: 12px; font-weight: 700; min-width: 70px; text-align: right; }
+.harga-unit-preview { font-size: 13px; color: var(--muted); margin: -4px 0 0; }
+.harga-unit-preview strong { color: var(--ink); font-family: var(--font-mono); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
@@ -375,5 +418,14 @@
   .card-label { font-size: 11.5px; }
   .card-value { font-size: 18px; margin-top: 2px; }
   .setting-grid { grid-template-columns: 1fr; }
-  .item-row { grid-template-columns: 1fr 110px auto; }
+  /* Nama mengambil satu baris penuh, jumlah + harga + hapus berbagi baris kedua. */
+  .item-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; row-gap: 6px; }
+  .item-row > .autocomplete { grid-column: 1 / -1; }
+  /* Tanggal + rincian belanja menumpuk di kiri; harga per satuan tetap sejajar. */
+  .harga-riwayat-row { grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 10px; row-gap: 2px; }
+  .harga-rw-tgl { grid-column: 1; grid-row: 1; }
+  .harga-rw-qty { grid-column: 1; grid-row: 2; white-space: normal; }
+  .harga-rw-harga { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  .harga-rw-delta { grid-column: 2; grid-row: 3; min-width: 0; text-align: right; }
+  .harga-riwayat-row .row-actions { grid-column: 3; grid-row: 1 / 4; align-self: center; }
 }

@@ -36,5 +36,6 @@ export const APP_DATA_DEFAULT: AppData = {
   wallets: WALLET_DEFAULT.map((w) => ({ ...w })),
   tabungan: [],
   hargaBarang: [],
+  hargaEmas: [],
   categories: { income: [...KATEGORI.income], expense: [...KATEGORI.expense] },
 }

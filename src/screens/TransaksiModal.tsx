@@ -6,12 +6,24 @@ import { useLang } from '../i18n'
 import { Icons } from '../components/Icons'
 import { Modal } from '../components/Modal'
 import { RupiahInput } from '../components/RupiahInput'
+import { JumlahSatuan } from '../components/JumlahSatuan'
+import { NamaBarangInput } from '../components/NamaBarangInput'
+import { baseSatuan, hargaPerSatuan, SATUAN_DEFAULT } from '../lib/satuan'
+import { saranPersis, type SaranBarang } from '../lib/saranBarang'
 
-/** Rincian satu barang dalam sebuah pengeluaran (untuk rangkuman harga). */
-export type ItemInput = { nama: string; harga: number }
+/**
+ * Rincian satu barang dalam sebuah pengeluaran (untuk rangkuman harga).
+ * `harga` adalah total yang dibayar untuk `jumlah` satuan — harga per satuan
+ * dihitung otomatis di layar Harga Barang.
+ */
+export type ItemInput = { nama: string; harga: number; jumlah: number; satuan: string }
 
-/** Baris barang dengan kunci lokal agar stabil saat diedit/dihapus di form. */
-type ItemRow = ItemInput & { key: string }
+/**
+ * Baris barang dengan kunci lokal agar stabil saat diedit/dihapus di form.
+ * `satuanManual` menandai user sudah memilih satuan sendiri, supaya saran
+ * dari barang lama tidak menimpanya.
+ */
+type ItemRow = ItemInput & { key: string; satuanManual: boolean }
 
 type Props = {
   wallet: WalletId
@@ -23,6 +35,8 @@ type Props = {
   initialType?: TxType
   /** Rincian barang yang sudah tersimpan untuk transaksi yang diedit. */
   initialItems?: ItemInput[]
+  /** Barang yang pernah dicatat, untuk saran otomatis saat mengetik nama. */
+  saranBarang: SaranBarang[]
   onClose: () => void
   onSave: (tx: Transaction, items: ItemInput[]) => void
 }
@@ -33,6 +47,7 @@ export function TransaksiModal({
   edit,
   initialType,
   initialItems,
+  saranBarang,
   onClose,
   onSave,
 }: Props) {
@@ -46,7 +61,7 @@ export function TransaksiModal({
   const [metode, setMetode] = useState<PaymentMethod>(edit?.metode ?? 'cash')
   const [tanggal, setTanggal] = useState(edit?.tanggal ?? todayIso())
   const [items, setItems] = useState<ItemRow[]>(
-    (initialItems ?? []).map((it) => ({ ...it, key: newId() })),
+    (initialItems ?? []).map((it) => ({ ...it, key: newId(), satuanManual: true })),
   )
 
   const itemTotal = items.reduce((sum, it) => sum + it.harga, 0)
@@ -58,10 +73,30 @@ export function TransaksiModal({
   }
 
   function addItem() {
-    setItems((rows) => [...rows, { key: newId(), nama: '', harga: 0 }])
+    setItems((rows) => [
+      ...rows,
+      { key: newId(), nama: '', harga: 0, jumlah: 1, satuan: SATUAN_DEFAULT, satuanManual: false },
+    ])
   }
-  function patchItem(key: string, patch: Partial<ItemInput>) {
+  function patchItem(key: string, patch: Partial<ItemRow>) {
     setItems((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)))
+  }
+
+  /**
+   * Nama diketik manual: kalau persis sama dengan barang yang pernah dicatat,
+   * satuannya ikut menyesuaikan — kecuali user sudah memilih satuan sendiri.
+   */
+  function ubahNamaItem(row: ItemRow, nama: string) {
+    const kenal = saranPersis(saranBarang, nama)
+    patchItem(row.key, {
+      nama,
+      ...(kenal && !row.satuanManual ? { satuan: kenal.satuan } : null),
+    })
+  }
+
+  /** Saran dipilih dari daftar: pakai nama & satuan terakhirnya. */
+  function pilihSaran(row: ItemRow, s: SaranBarang) {
+    patchItem(row.key, { nama: s.nama, satuan: row.satuanManual ? row.satuan : s.satuan })
   }
   function removeItem(key: string) {
     setItems((rows) => rows.filter((r) => r.key !== key))
@@ -74,7 +109,13 @@ export function TransaksiModal({
     const cleanItems =
       type === 'expense'
         ? items
-            .map((it) => ({ nama: it.nama.trim(), harga: it.harga }))
+            .map((it) => ({
+              nama: it.nama.trim(),
+              harga: it.harga,
+              // Jumlah kosong/nol dianggap 1 satuan supaya harga tetap tercatat.
+              jumlah: it.jumlah > 0 ? it.jumlah : 1,
+              satuan: it.satuan,
+            }))
             .filter((it) => it.nama && it.harga > 0)
         : []
     onSave(
@@ -173,12 +214,21 @@ export function TransaksiModal({
               <div className="item-rows">
                 {items.map((it) => (
                   <div key={it.key} className="item-row">
-                    <input
-                      type="text"
+                    <NamaBarangInput
                       className="item-nama"
                       value={it.nama}
+                      onChange={(nama) => ubahNamaItem(it, nama)}
+                      onPilih={(s) => pilihSaran(it, s)}
+                      saran={saranBarang}
                       placeholder={t('item.namaPlaceholder')}
-                      onChange={(e) => patchItem(it.key, { nama: e.target.value })}
+                      ariaLabel={t('harga.namaBarang')}
+                    />
+                    <JumlahSatuan
+                      jumlah={it.jumlah}
+                      satuan={it.satuan}
+                      onJumlah={(n) => patchItem(it.key, { jumlah: n })}
+                      onSatuan={(s) => patchItem(it.key, { satuan: s, satuanManual: true })}
+                      ariaLabel={t('item.jumlah')}
                     />
                     <div className="item-harga">
                       <RupiahInput
@@ -194,6 +244,12 @@ export function TransaksiModal({
                     >
                       <Icons.trash />
                     </button>
+                    {it.harga > 0 && it.jumlah > 0 && (
+                      <p className="item-unit">
+                        {rupiah(hargaPerSatuan(it.harga, it.jumlah, it.satuan))} /{' '}
+                        {t('satuan.' + baseSatuan(it.satuan))}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

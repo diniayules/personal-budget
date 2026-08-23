@@ -3,6 +3,8 @@ import type { AppData, FontPair, FontSize, Lang, TabunganJenis, TxType, WalletId
 import { APP_DATA_DEFAULT } from '../storage'
 import { FONT_PAIRS, FONT_PAIR_LIST, FONT_SIZE_LIST, FONT_SIZE_META } from '../appearance'
 import { setPrefs, usePrefs } from '../lib/prefs'
+import { normalizeHargaEmasList, normalizePriceList } from '../lib/store'
+import type { DriveSync } from '../lib/useDriveSync'
 import { useLang } from '../i18n'
 import { useToast } from '../components/Toast'
 import { ThemeSwitcher } from '../components/ThemeSwitcher'
@@ -12,9 +14,10 @@ type Props = {
   data: AppData
   setData: (next: AppData) => void
   onDeleteWallet: (id: WalletId) => void
+  sync: DriveSync
 }
 
-export function Pengaturan({ data, setData, onDeleteWallet }: Props) {
+export function Pengaturan({ data, setData, onDeleteWallet, sync }: Props) {
   const { t } = useLang()
   const toast = useToast()
   const prefs = usePrefs()
@@ -86,7 +89,9 @@ export function Pengaturan({ data, setData, onDeleteWallet }: Props) {
               ? parsed.wallets
               : APP_DATA_DEFAULT.wallets.map((w) => ({ ...w })),
           tabungan: Array.isArray(parsed.tabungan) ? parsed.tabungan : [],
-          hargaBarang: Array.isArray(parsed.hargaBarang) ? parsed.hargaBarang : [],
+          // Backup lama menyimpan berat di dalam nama; normalisasi memisahkannya.
+          hargaBarang: normalizePriceList(parsed.hargaBarang),
+          hargaEmas: normalizeHargaEmasList(parsed.hargaEmas),
           categories: {
             income: Array.isArray(parsed.categories?.income)
               ? parsed.categories.income
@@ -262,6 +267,53 @@ export function Pengaturan({ data, setData, onDeleteWallet }: Props) {
           ))}
         </div>
       </section>
+
+      {sync.configured && (
+        <section className="panel">
+          <h2 className="panel-title">{t('set.sync')}</h2>
+          <p className="page-sub">{t('set.syncSub')}</p>
+          <p className="page-sub">
+            {sync.status === 'connecting'
+              ? t('set.syncConnecting')
+              : sync.status === 'syncing'
+                ? t('set.syncSyncing')
+                : sync.status === 'error'
+                  ? `⚠️ ${sync.lastError ?? t('set.syncError')}`
+                  : sync.connected
+                    ? `✅ ${t('set.syncOn')}` +
+                      (sync.lastSyncAt
+                        ? ` · ${t('set.syncLast')} ${new Date(sync.lastSyncAt).toLocaleString()}`
+                        : '')
+                    : t('set.syncOff')}
+          </p>
+          <div className="chip-row">
+            {sync.connected ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  disabled={sync.status === 'syncing' || sync.status === 'connecting'}
+                  onClick={() => sync.syncNow()}
+                >
+                  {t('set.syncNow')}
+                </button>
+                <button type="button" className="btn btn-danger" onClick={() => sync.disconnect()}>
+                  {t('set.syncDisconnect')}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={sync.status === 'connecting'}
+                onClick={() => sync.connect()}
+              >
+                {t('set.syncConnect')}
+              </button>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <h2 className="panel-title">{t('set.data')}</h2>

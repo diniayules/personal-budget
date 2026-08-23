@@ -3,6 +3,7 @@ import type { TabunganJenis, TxType, Wallet, WalletId } from './types'
 import { newId } from './lib/store'
 import { applyAppearance } from './appearance'
 import { useAppData } from './lib/useAppData'
+import { useDriveSync } from './lib/useDriveSync'
 import { usePrefs } from './lib/prefs'
 import { LangProvider } from './i18n'
 import { ToastProvider } from './components/Toast'
@@ -17,6 +18,7 @@ import './App.css'
 
 function Inner() {
   const { data, loading, setData } = useAppData()
+  const sync = useDriveSync(data, setData)
   const prefs = usePrefs()
   const [nav, setNav] = useState<NavId>('pribadi')
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -115,7 +117,7 @@ function Inner() {
 
         <main className="main">
           {nav === 'pengaturan' ? (
-            <Pengaturan data={data} setData={setData} onDeleteWallet={deleteWallet} />
+            <Pengaturan data={data} setData={setData} onDeleteWallet={deleteWallet} sync={sync} />
           ) : tabunganJenis ? (
             <TabunganScreen key={tabunganJenis} data={data} setData={setData} jenis={tabunganJenis} />
           ) : nav === 'harga' ? (

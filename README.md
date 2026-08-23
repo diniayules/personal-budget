@@ -47,5 +47,12 @@ npm run preview
 
 - Data tersimpan di `localStorage` (kunci `personal-budget:data:v1`). Bisa
   diekspor/diimpor sebagai JSON di halaman **Pengaturan**.
+- **Sinkron antar-gadget (opsional, tanpa akun aplikasi & tanpa server):**
+  hubungkan Google Drive milikmu sendiri di halaman **Pengaturan**. Data
+  disimpan sebagai satu file di *appDataFolder* (folder tersembunyi khusus app,
+  scope minimal `drive.appdata`) lalu sinkron otomatis ke gadget lain yang
+  login Google yang sama. Aktifkan dengan mengisi `VITE_GOOGLE_CLIENT_ID` —
+  lihat langkah pembuatan Client ID di `.env.example`. Tanpa env ini, panel
+  sinkron disembunyikan dan app tetap jalan 100% lokal seperti biasa.
 - Kalau nanti mau pindah ke Supabase (seperti absensi), tinggal ganti
   implementasi `lib/store.ts` + `lib/useAppData.tsx` tanpa mengubah UI.

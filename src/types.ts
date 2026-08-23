@@ -51,8 +51,32 @@ export type Tabungan = {
   bentuk?: string
   /** Kadar emas: Logam Mulia, 18k, 16k, 8k. */
   kadar?: string
-  /** Berat dalam gram. */
+  /** Berat sesuai satuan yang dipilih user (lihat `satuanBerat`). */
+  berat?: number
+  /** Satuan berat yang dipilih: 'gram', 'mayam', atau 'suku'. */
+  satuanBerat?: string
+  /** Berat hasil konversi ke gram — dipakai untuk perbandingan antar pos. */
   gram?: number
+  /** Harga terkini item ini (Rupiah); kosong bila belum pernah dicek. */
+  hargaKini?: number
+  /** Tanggal `hargaKini` dicatat, format ISO `YYYY-MM-DD`. */
+  hargaKiniTanggal?: string
+}
+
+/**
+ * Taksiran harga satu pos emas pada satu tanggal. Dicatat per pos (bukan per
+ * kadar) karena tiap perhiasan dibeli di toko berbeda dengan harga berbeda,
+ * jadi untung/rugi paling akurat dihitung terhadap item itu sendiri.
+ * Satu pos hanya punya satu entri per tanggal.
+ */
+export type HargaEmas = {
+  id: string
+  /** ID pos emas yang dinilai. */
+  posId: string
+  /** Taksiran harga item pada tanggal tsb, dalam Rupiah. */
+  harga: number
+  /** Format ISO `YYYY-MM-DD`. */
+  tanggal: string
 }
 
 /**
@@ -62,10 +86,14 @@ export type Tabungan = {
  */
 export type PriceEntry = {
   id: string
-  /** Nama barang, mis. "Ayam 1kg". */
+  /** Nama barang tanpa berat/ukuran, mis. "Ayam". */
   nama: string
-  /** Harga dalam Rupiah pada tanggal tersebut. */
+  /** Harga total dalam Rupiah untuk `jumlah` satuan pada tanggal tersebut. */
   harga: number
+  /** Banyaknya yang dibeli, mis. 7 (kg). Selalu > 0. */
+  jumlah: number
+  /** ID satuan dari katalog `SATUAN` (lib/satuan.ts), mis. 'kg'. */
+  satuan: string
   /** Format ISO `YYYY-MM-DD`. */
   tanggal: string
   /** ID transaksi sumber bila berasal dari rincian pengeluaran. */
@@ -81,6 +109,8 @@ export type AppData = {
   tabungan: Tabungan[]
   /** Riwayat harga barang yang dilacak. */
   hargaBarang: PriceEntry[]
+  /** Riwayat taksiran harga tiap pos emas. */
+  hargaEmas: HargaEmas[]
   /** Kategori per jenis transaksi (bisa ditambah/dihapus di Pengaturan). */
   categories: Record<TxType, string[]>
 }

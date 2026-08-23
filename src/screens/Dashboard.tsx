@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast'
 import { Icons } from '../components/Icons'
 import { Modal } from '../components/Modal'
 import { TransaksiModal, type ItemInput } from './TransaksiModal'
+import { buatSaranBarang } from '../lib/saranBarang'
 
 type Filter = 'all' | TxType
 
@@ -40,6 +41,10 @@ export function Dashboard({ wallet, data, setData, quickNew, onQuickConsumed }: 
   }, [quickNew])
 
   const dompet = data.wallets.find((w) => w.id === wallet)
+
+  // Saran nama barang diambil dari seluruh riwayat harga (lintas dompet):
+  // barang yang sama sering dibeli dari dompet mana pun.
+  const saranBarang = useMemo(() => buatSaranBarang(data.hargaBarang), [data.hargaBarang])
 
   const txs = useMemo(
     () =>
@@ -96,6 +101,8 @@ export function Dashboard({ wallet, data, setData, quickNew, onQuickConsumed }: 
       id: newId(),
       nama: it.nama,
       harga: it.harga,
+      jumlah: it.jumlah,
+      satuan: it.satuan,
       tanggal: tx.tanggal,
       txId: tx.id,
     }))
@@ -255,11 +262,17 @@ export function Dashboard({ wallet, data, setData, quickNew, onQuickConsumed }: 
           categories={data.categories}
           edit={modal.edit}
           initialType={modal.type}
+          saranBarang={saranBarang}
           initialItems={
             modal.edit
               ? data.hargaBarang
                   .filter((h) => h.txId === modal.edit!.id)
-                  .map((h) => ({ nama: h.nama, harga: h.harga }))
+                  .map((h) => ({
+                    nama: h.nama,
+                    harga: h.harga,
+                    jumlah: h.jumlah,
+                    satuan: h.satuan,
+                  }))
               : undefined
           }
           onClose={() => setModal(null)}
